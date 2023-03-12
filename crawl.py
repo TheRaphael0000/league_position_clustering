@@ -32,7 +32,6 @@ def save_matches():
     with zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_LZMA) as zip_:
         zip_.write(json_filepath, arcname=json_filename)
     os.remove(json_filepath)
-    matches = []
 
 
 try:
@@ -67,6 +66,7 @@ try:
 
             if len(matches) >= match_per_file:
                 save_matches()
+                matches = []
 
 except KeyboardInterrupt:
     pass
