@@ -1,9 +1,10 @@
 import json
-from pprint import pprint
+import sys
 import random
 import uuid
 import zipfile
 import os
+from requests import HTTPError
 
 from riotwatcher import LolWatcher
 
@@ -48,19 +49,28 @@ try:
             break
 
         puuid = puuid_pool.pop()
-        matches_id = set(lol_watcher.match.matchlist_by_puuid(
-            server, puuid, count=matches_for_each_summoner, queue=queue_id))
+        try:
+            matches_id = lol_watcher.match.matchlist_by_puuid(
+                server, puuid, count=matches_for_each_summoner, queue=queue_id)
+        except HTTPError as e:
+            print(e, file=sys.stderr)
+            continue
+
+        matches_id = set(matches_id)
         matches_id -= matches_visited
         puuid_visited.add(puuid)
 
         for match_id in matches_id:
             matches_visited.add(match_id)
-            match = lol_watcher.match.by_id(server, match_id)
 
-            participants = match["info"]["participants"]
+            try:
+                match = lol_watcher.match.by_id(server, match_id)
+            except HTTPError as e:
+                print(e, file=sys.stderr)
+                continue
+
             # add participants to puuid pool
-            for participant in participants:
-                puuid_pool.add(participant["puuid"])
+            puuid_pool |= set(match["metadata"]["participants"])
 
             matches.append(match)
 
@@ -68,7 +78,7 @@ try:
                 save_matches()
                 matches = []
 
-except KeyboardInterrupt:
-    pass
+except KeyboardInterrupt as e:
+    print(e, file=sys.stderr)
 
 save_matches()
