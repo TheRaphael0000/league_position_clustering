@@ -14,6 +14,8 @@ Trying to allows us to automatically find the champion's meta position-s for eac
 
 Using PCA to visually represent the champions vectors and the cluster centers
 
+**Be aware that the clusters are performed in a higher space than the 2 first components of PCA.**
+
 ![showcase/pca.png](showcase/pca.jpg)
 
 
